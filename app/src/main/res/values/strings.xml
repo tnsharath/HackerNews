@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">HackerNews</string>
+    <string name="search">Search</string>
+    <string name="enter_your_interest">Enter Your Interest</string>
+</resources>
