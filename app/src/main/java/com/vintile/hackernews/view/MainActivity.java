@@ -25,7 +25,6 @@ public class MainActivity extends AppCompatActivity {
         inputEditText = findViewById(R.id.idSearch);
     }
 
-
     public void Search(View view) {
         String searchString = Objects.requireNonNull(inputEditText.getText()).toString();
         Intent intent = new Intent(this, NewsHeadlineActivity.class);
