@@ -11,7 +11,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.vintile.hackernews.R;
 import com.vintile.hackernews.databinding.ItemNewsBinding;
 import com.vintile.hackernews.model.Hit;
-import com.vintile.hackernews.viewmodel.NewsViewModel;
+import com.vintile.hackernews.util.ClickInterface;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,8 +23,10 @@ public class NewsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
     private static final int LOADING = 1;
     private boolean isLoadingAdded = false;
 
-    public NewsAdapter() {
+    private ClickInterface clickInterface;
+    public NewsAdapter(ClickInterface clickInterface) {
         this.hitList = new ArrayList<>();
+        this.clickInterface = clickInterface;
     }
 
     @NonNull
@@ -52,11 +54,17 @@ public class NewsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
-        Hit hit = hitList.get(position);
+        final Hit hit = hitList.get(position);
         switch (getItemViewType(position)) {
             case ITEM:
-                final NewsViewHolder bonusVH = (NewsViewHolder) holder;
-                bonusVH.itemNewsBinding.setHitsModel(hit);
+                final NewsViewHolder newsVH = (NewsViewHolder) holder;
+                newsVH.itemNewsBinding.setHitsModel(hit);
+                newsVH.itemNewsBinding.idTitle.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        clickInterface.onClickNews(hit.getUrl());
+                    }
+                });
                 break;
 
             case LOADING:

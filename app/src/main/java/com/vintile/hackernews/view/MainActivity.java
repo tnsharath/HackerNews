@@ -16,17 +16,20 @@ import java.util.Objects;
 public class MainActivity extends AppCompatActivity {
 
 
-    TextInputEditText inputEditText;
+    private TextInputEditText inputEditText;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
         inputEditText = findViewById(R.id.idSearch);
     }
 
     public void Search(View view) {
         String searchString = Objects.requireNonNull(inputEditText.getText()).toString();
+        if (searchString.length() == 0){
+            Toast.makeText(this, getResources().getString(R.string.empty_string_error_msg), Toast.LENGTH_LONG).show();
+            return;
+        }
         Intent intent = new Intent(this, NewsHeadlineActivity.class);
         intent.putExtra(AppConstants.SEARCH_STRING, searchString);
         startActivity(intent);

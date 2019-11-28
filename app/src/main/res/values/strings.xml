@@ -2,4 +2,6 @@
     <string name="app_name">HackerNews</string>
     <string name="search">Search</string>
     <string name="enter_your_interest">Enter Your Interest</string>
+    <string name="empty_string_error_msg">Please enter Your interested Category!!!</string>
+    <string name="author">- Author</string>
 </resources>

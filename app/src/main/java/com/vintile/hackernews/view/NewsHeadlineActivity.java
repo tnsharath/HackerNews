@@ -11,33 +11,31 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Rect;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
-import android.widget.Toast;
 
 import com.vintile.hackernews.MyApplication;
 import com.vintile.hackernews.R;
 import com.vintile.hackernews.databinding.ActivityNewsHeadlineBinding;
 import com.vintile.hackernews.model.Hit;
 import com.vintile.hackernews.util.AppConstants;
+import com.vintile.hackernews.util.ClickInterface;
 import com.vintile.hackernews.view.adapter.NewsAdapter;
 import com.vintile.hackernews.viewmodel.NewsModelFactory;
 import com.vintile.hackernews.viewmodel.NewsViewModel;
 
 import java.util.List;
-import java.util.Objects;
 
-import static com.vintile.hackernews.MyApplication.getContext;
+public class NewsHeadlineActivity extends AppCompatActivity implements ClickInterface {
 
-public class NewsHeadlineActivity extends AppCompatActivity {
-
-
-    private static final int PAGE_START = 1;
+    private static final int PAGE_START = 0;
     private boolean isLoading = false;
     private boolean isLastPage = false;
-    private final int TOTAL_PAGES = 5;
+    private final int TOTAL_PAGES = 50;
     private int currentPage = PAGE_START;
 
     private NewsAdapter adapter;
@@ -47,21 +45,18 @@ public class NewsHeadlineActivity extends AppCompatActivity {
 
     private ActivityNewsHeadlineBinding activityNewsHeadlineBinding;
 
+    private String searchString = "";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        String searchString = getIntent().getStringExtra(AppConstants.SEARCH_STRING);
-        Toast.makeText(this, searchString, Toast.LENGTH_LONG).show();
-
+        searchString = getIntent().getStringExtra(AppConstants.SEARCH_STRING);
         activityNewsHeadlineBinding = DataBindingUtil.setContentView(this, R.layout.activity_news_headline);
-
-        adapter = new NewsAdapter();
-        NewsModelFactory newsModelFactory = new NewsModelFactory();
-//        itemDecoration = new ItemOffsetDecoration(Objects.requireNonNull(getContext()));
+        adapter = new NewsAdapter(this);
+        itemDecoration = new ItemOffsetDecoration(getApplicationContext());
         model = ViewModelProviders.of(this, new NewsModelFactory()).get(NewsViewModel.class);
-
         initRecyView();
-        loadFirstPage();
+        loadFirstPage(searchString, currentPage);
     }
 
     /**
@@ -70,7 +65,7 @@ public class NewsHeadlineActivity extends AppCompatActivity {
     private void initRecyView() {
         activityNewsHeadlineBinding.recyclerView.setHasFixedSize(true);
         activityNewsHeadlineBinding.recyclerView.setLayoutManager(linearLayoutManager);
-       // activityNewsHeadlineBinding.recyclerView.addItemDecoration(itemDecoration);
+        activityNewsHeadlineBinding.recyclerView.addItemDecoration(itemDecoration);
         activityNewsHeadlineBinding.recyclerView.setItemAnimator(new DefaultItemAnimator());
         activityNewsHeadlineBinding.recyclerView.addOnScrollListener(paginationScrollListener);
         activityNewsHeadlineBinding.setNewsAdapter(adapter);
@@ -79,9 +74,9 @@ public class NewsHeadlineActivity extends AppCompatActivity {
     /**
      * Load initial data
      */
-    private void loadFirstPage() {
+    private void loadFirstPage(String searchString, int pageCount) {
 
-        model.getNews().observe(this, new Observer<List<Hit>>() {
+        model.getNews(searchString, pageCount).observe(this, new Observer<List<Hit>>() {
             @Override
             public void onChanged(@Nullable List<Hit> newsList) {
                 if (newsList != null) {
@@ -92,7 +87,6 @@ public class NewsHeadlineActivity extends AppCompatActivity {
                 else isLastPage = true;
             }
         });
-
     }
 
 
@@ -107,7 +101,7 @@ public class NewsHeadlineActivity extends AppCompatActivity {
             new Handler().postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    loadFirstPage();
+                    loadNextPage();
                 }
             }, 1000);
         }
@@ -122,17 +116,37 @@ public class NewsHeadlineActivity extends AppCompatActivity {
             return isLoading;
         }
     };
+
+    /**
+     * Load next set of data
+     */
+    private void loadNextPage() {
+
+        adapter.removeLoadingFooter();
+        isLoading = false;
+        loadFirstPage(searchString, currentPage);
+    }
+
+    /**
+     * Click on any News Item redirect to Detailed view of news
+     * @param url String of detailed news url
+     */
+    @Override
+    public void onClickNews(String url) {
+        Intent httpIntent = new Intent(Intent.ACTION_VIEW);
+        httpIntent.setData(Uri.parse(url));
+        startActivity(httpIntent);
+    }
+
     /**
      * Recyclerview item decoration
      */
     class ItemOffsetDecoration extends RecyclerView.ItemDecoration {
 
         private final int mItemOffset;
-
         private ItemOffsetDecoration(int itemOffset) {
             mItemOffset = itemOffset;
         }
-
         private ItemOffsetDecoration(@NonNull Context context) {
             this(context.getResources().getDimensionPixelSize(R.dimen.item_margin));
         }
@@ -145,6 +159,4 @@ public class NewsHeadlineActivity extends AppCompatActivity {
             outRect.set(mItemOffset, mItemOffset, mItemOffset, mItemOffset);
         }
     }
-
-
 }
